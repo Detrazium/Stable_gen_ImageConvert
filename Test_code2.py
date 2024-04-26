@@ -1,6 +1,6 @@
 from diffusers import DiffusionPipeline
 from diffusers.utils import load_image
-new_item = 'restar'
+test = 'test'
 
 ell = torch.cuda.is_available()
 ll = torch.version.cuda

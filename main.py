@@ -11,7 +11,7 @@ import tensorflow as tf
 from diffusers.utils import load_image
 from safetensors.tensorflow import load_file
 
-new_item = 'restar'
+new_item = 'resta'
 tasks = "image-to-image"
 Mmodel = r'C:\Users\Антонио\PycharmProjects\Stable_gen_ImageConvert\Model\dreamshaper_8.safetensors'
 """___--___"""

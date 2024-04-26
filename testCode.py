@@ -4,7 +4,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from diffusers import ControlNetModel, UniPCMultistepScheduler, AutoPipelineForImage2Image, StableDiffusionImg2ImgPipeline, StableDiffusionControlNetImg2ImgPipeline
 from diffusers.utils import load_image
 
-new_item = 'restart'
+test = 'test'
 imgMy = load_image(r"C:\Datasets\oJpmaLR37vo.jpg")
 controler = "lllyasviel/sd-controlnet-depth"
 
