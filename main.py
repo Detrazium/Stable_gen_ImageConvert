@@ -1,46 +1,50 @@
 import os, logging
 logging.disable(logging.WARNING)
-os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from transformers import pipeline
-from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler
-from PIL import Image
+from diffusers import (
+ControlNetModel,
+StableDiffusionControlNetImg2ImgPipeline,
+DDIMScheduler,)
+from diffusers.utils import load_image, make_image_grid
+import torch
 import numpy as np
-import keras
-import tensorflow as tf
-from diffusers.utils import load_image
-from safetensors.tensorflow import load_file
 
-new_item = 'resta'
-tasks = "image-to-image"
-Mmodel = r'C:\Users\Антонио\PycharmProjects\Stable_gen_ImageConvert\Model\dreamshaper_8.safetensors'
-"""___--___"""
+imgMy = load_image(r"C:\Datasets\oJpmaLR37vo.jpg")
 
-depth_estimator = pipeline('depth-estimation')
+items = {'model': "Lykon/DreamShaper",
+		 'controller': "lllyasviel/sd-controlnet-depth",
+		 'ip_adapter': 'ip-adapter-plus-face_sd15.bin'}
+prompt = 'masterpiece, portrait of a person, anime style, high quality, RAW photo, 8k uhd'
 
-image = load_image("https://huggingface.co/lllyasviel/sd-controlnet-depth/resolve/main/images/stormtrooper.png")
+bad_prompt = 'monochrome, lowres, bad anatomy, worst quality, low quality, blurry'
 
-image = depth_estimator(image)['depth']
-image = np.array(image)
-image = image[:, :, None]
-image = np.concatenate([image, image, image], axis=2)
-image = Image.fromarray(image)
+def get_map_depth(imgMy, depth_ester):
+	img = depth_ester(imgMy)['depth']
+	img = np.array(img)
+	img = img[:, :, None]
+	img = np.concatenate([img, img, img], axis=2)
+	detecter = torch.from_numpy(img).float() / 255.0
+	depth_map = detecter.permute(2, 0, 1)
+	return depth_map
 
-controlnet = ControlNetModel.from_pretrained(
-    "lllyasviel/sd-controlnet-depth", torch_dtype=torch.float16
-)
+depth_ester = pipeline('depth-estimation')
+depth_image = get_map_depth(imgMy, depth_ester).unsqueeze(0).half()
 
-pipe = StableDiffusionControlNetPipeline.from_pretrained(
-    "runwayml/stable-diffusion-v1-5", controlnet=controlnet, safety_checker=None, torch_dtype=torch.float16
-)
+controlnet = ControlNetModel.from_pretrained(items['controller'])
+pipline = StableDiffusionControlNetImg2ImgPipeline.from_pretrained(items['model'],controlnet=controlnet)
+pipline.scheduler = DDIMScheduler.from_config(pipline.scheduler.config)
 
-pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
+pipline.load_ip_adapter("h94/IP-Adapter", subfolder='models', weight_name=items['ip_adapter'])
+pipline.set_ip_adapter_scale(0.6)
 
-pipe.enable_xformers_memory_efficient_attention()
-
-pipe.enable_model_cpu_offload()
-
-image = pipe("Stormtrooper's lecture", image, num_inference_steps=20).images[0]
-
-image.save(r'C:\Users\Антонио\PycharmProjects\Stable_gen_ImageConvert\stormtrooper_depth_out.png')
+generatro = torch.Generator(device='cpu').manual_seed(33)
+outer = pipline(prompt=prompt,
+				negative_prompt=bad_prompt,
+				image=imgMy,
+				ip_adapter_image=imgMy,
+				control_image = depth_image,
+				generator=generatro).images[0]
+item = make_image_grid([imgMy, outer], rows=1, cols=2)
+item.save('images/imagereD2.png')
 
