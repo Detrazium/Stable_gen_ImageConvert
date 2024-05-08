@@ -51,7 +51,8 @@ class Stable_patterns_metod_v1():
 		return item
 
 def main():
-	Stable_patterns_metod_v1
+	Stable_patterns_metod_v1()
+
 if __name__ == '__main__':
 	main()
 
