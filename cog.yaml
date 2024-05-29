@@ -1,0 +1,16 @@
+
+build:
+  gpu: false
+#   a list of ubuntu apt packages to install
+  system_packages:
+   - "libgl1-mesa-glx"
+   - "libglib2.0-0"
+  # python version in the form '3.11' or '3.11.4'
+  python_version: "3.12"
+  python_packages:
+    - "torch==2.2.0"
+    - "torchvision==0.17.0"
+    - "transformers==4.40.2"
+    - "diffusers==0.27.2"
+    - "pillow==10.3.0"
+predict: "predict.py:Predictor"
